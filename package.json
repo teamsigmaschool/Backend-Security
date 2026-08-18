@@ -1,0 +1,22 @@
+{
+  "name": "mini-blog",
+  "version": "1.0.0",
+  "description": "ABC (All Blog Center) - Mission 9 Ch6 companion codebase. Stage 0 of 2: the clean starting point, based on teamsigmaschool/Advanced-API-Features. index.js is unchanged from that repo -- the Ch6 identity fix lives entirely in schema.sql. See codebase-v2/README.md.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "node-fetch": "^3.3.2",
+    "pg-mem": "^3.0.14"
+  }
+}
