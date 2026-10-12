@@ -196,9 +196,9 @@ async function loginV2(req, res, next) {
 async function getAllPostsV1(req, res) {
   try {
     const result = await pool.query(
-      `SELECT posts.id, posts.title, posts.content, posts.created_at, users.username AS author
-       FROM posts JOIN users ON posts.user_id = users.id
-       ORDER BY posts.created_at DESC`
+      `SELECT abc_posts.id, abc_posts.title, abc_posts.content, abc_posts.created_at, abc_users.username AS author
+       FROM abc_posts JOIN abc_users ON abc_posts.user_id = abc_users.id
+       ORDER BY abc_posts.created_at DESC`
     );
     res.json(result.rows);
   } catch (err) {
@@ -207,7 +207,7 @@ async function getAllPostsV1(req, res) {
   }
 }
 
-const SORTABLE_FIELDS = { created_at: 'posts.created_at', title: 'posts.title' };
+const SORTABLE_FIELDS = { created_at: 'abc_posts.created_at', title: 'abc_posts.title' };
 
 async function getAllPostsV2(req, res, next) {
   try {
@@ -224,11 +224,11 @@ async function getAllPostsV2(req, res, next) {
     const values = [];
     if (author) {
       values.push(author);
-      conditions.push(`users.username = $${values.length}`);
+      conditions.push(`abc_users.username = $${values.length}`);
     }
     if (search) {
       values.push(`%${search}%`);
-      conditions.push(`(posts.title ILIKE $${values.length} OR posts.content ILIKE $${values.length})`);
+      conditions.push(`(abc_posts.title ILIKE $${values.length} OR abc_posts.content ILIKE $${values.length})`);
     }
 
     let ourFilter;
@@ -244,7 +244,7 @@ async function getAllPostsV2(req, res, next) {
     const sortOrder = String(order).toLowerCase() === 'asc' ? 'ASC' : 'DESC';
 
     const countResult = await pool.query
-    (`SELECT COUNT(*) FROM posts JOIN users ON posts.user_id = users.id ${ourFilter}`,
+    (`SELECT COUNT(*) FROM abc_posts JOIN abc_users ON abc_posts.user_id = abc_users.id ${ourFilter}`,
       values);
 
     const totalCount = parseInt(countResult.rows[0].count, 10);
@@ -256,9 +256,9 @@ async function getAllPostsV2(req, res, next) {
     const attachedOffset = `$${values.length}`;
 
     const result = await pool.query(
-      `SELECT posts.id, posts.title, posts.content, posts.created_at,
-              users.id AS author_id, users.username AS author_username
-       FROM posts JOIN users ON posts.user_id = users.id
+      `SELECT abc_posts.id, abc_posts.title, abc_posts.content, abc_posts.created_at,
+              abc_users.id AS author_id, abc_users.username AS author_username
+       FROM abc_posts JOIN abc_users ON abc_posts.user_id = abc_users.id
        ${ourFilter}
        ORDER BY ${sortColumn} ${sortOrder}
        LIMIT ${attachedLimit} OFFSET ${attachedOffset}`,
@@ -282,7 +282,7 @@ async function createPostV1(req, res) {
   const { title, content } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO posts (title, content, user_id) VALUES ($1, $2, $3) RETURNING *',
+      'INSERT INTO abc_posts (title, content, user_id) VALUES ($1, $2, $3) RETURNING *',
       [title, content, req.user.userId]
     );
     res.status(201).json(result.rows[0]);
@@ -299,7 +299,7 @@ async function createPostV2(req, res, next) {
   }
   try {
     const result = await pool.query(
-      'INSERT INTO posts (title, content, user_id) VALUES ($1, $2, $3) RETURNING *',
+      'INSERT INTO abc_posts (title, content, user_id) VALUES ($1, $2, $3) RETURNING *',
       [clean.title, clean.content, req.user.userId]
     );
     sendSuccess(res, result.rows[0], {}, 201);
@@ -313,7 +313,7 @@ async function updatePostV1(req, res) {
   const { title, content } = req.body;
   try {
     const result = await pool.query(
-      `UPDATE posts SET title = COALESCE($1, title), content = COALESCE($2, content)
+      `UPDATE abc_posts SET title = COALESCE($1, title), content = COALESCE($2, content)
        WHERE id = $3 AND user_id = $4 RETURNING *`,
       [title, content, req.params.id, req.user.userId]
     );
@@ -334,7 +334,7 @@ async function updatePostV2(req, res, next) {
   }
   try {
     const result = await pool.query(
-      `UPDATE posts SET title = COALESCE($1, title), content = COALESCE($2, content)
+      `UPDATE abc_posts SET title = COALESCE($1, title), content = COALESCE($2, content)
        WHERE id = $3 AND user_id = $4 RETURNING *`,
       [clean.title, clean.content, req.params.id, req.user.userId]
     );
@@ -351,7 +351,7 @@ async function updatePostV2(req, res, next) {
 async function deletePostV1(req, res) {
   try {
     const result = await pool.query(
-      'DELETE FROM posts WHERE id = $1 AND user_id = $2 RETURNING *',
+      'DELETE FROM abc_posts WHERE id = $1 AND user_id = $2 RETURNING *',
       [req.params.id, req.user.userId]
     );
     if (result.rows.length === 0) {
@@ -366,7 +366,7 @@ async function deletePostV1(req, res) {
 async function deletePostV2(req, res, next) {
   try {
     const result = await pool.query(
-      'DELETE FROM posts WHERE id = $1 AND user_id = $2 RETURNING *',
+      'DELETE FROM abc_posts WHERE id = $1 AND user_id = $2 RETURNING *',
       [req.params.id, req.user.userId]
     );
     if (result.rows.length === 0) {
@@ -382,7 +382,7 @@ async function deletePostV2(req, res, next) {
 async function forceDeletePostV1(req, res) {
   try {
     const result = await pool.query(
-      'DELETE FROM posts WHERE id = $1 RETURNING *',
+      'DELETE FROM abc_posts WHERE id = $1 RETURNING *',
       [req.params.id]
     );
     if (result.rows.length === 0) {
@@ -397,7 +397,7 @@ async function forceDeletePostV1(req, res) {
 async function forceDeletePostV2(req, res, next) {
   try {
     const result = await pool.query(
-      'DELETE FROM posts WHERE id = $1 RETURNING *',
+      'DELETE FROM abc_posts WHERE id = $1 RETURNING *',
       [req.params.id]
     );
     if (result.rows.length === 0) {
